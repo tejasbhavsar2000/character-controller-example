@@ -10,6 +10,7 @@ const width = window.innerWidth;
 const height = window.innerHeight;
 var scene = new THREE.Scene();
 var clock = new THREE.Clock();
+var mixer;
 scene.background = new THREE.Color(0xe0e0e0);
 scene.fog = new THREE.Fog(0xe0e0e0, 20, 100);
 scene.background = new THREE.Color("#808080");
@@ -37,22 +38,41 @@ const mesh = new THREE.Mesh(
   new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false })
 );
 mesh.rotation.x = -Math.PI / 2;
+mesh.receiveShadow = true;
+
 scene.add(mesh);
 
 const loader = new GLTFLoader();
 loader.load(
   "../model/RobotExpressive.glb",
   function (gltf) {
-    var model = gltf.scene;
+    const model = gltf.scene;
+    model.traverse(function (object) {
+      if (object.isMesh) object.castShadow = true;
+    });
     scene.add(model);
 
-    createGUI(model, gltf.animations);
+    const gltfAnimations = gltf.animations;
+    mixer = new THREE.AnimationMixer(model);
+    const animationsMap = new Map();
+    gltfAnimations
+      .filter((a) => a.name != "TPose")
+      .forEach((a) => {
+        animationsMap.set(a.name, mixer.clipAction(a));
+      });
+    animationsMap.forEach((value, key) => {
+      if (key == "Running") {
+        console.log(value);
+        value.play();
+      }
+    });
   },
   undefined,
   function (e) {
     console.error(e);
   }
 );
+
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputEncoding = THREE.sRGBEncoding;
@@ -61,7 +81,8 @@ document.body.appendChild(renderer.domElement);
 
 function animate() {
   requestAnimationFrame(animate);
-
+  var delta = clock.getDelta();
+  if (mixer) mixer.update(delta);
   render();
 }
 
