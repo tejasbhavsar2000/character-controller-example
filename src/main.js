@@ -41,7 +41,7 @@ mesh.rotation.x = -Math.PI / 2;
 mesh.receiveShadow = true;
 
 scene.add(mesh);
-
+//var characterControls = new CharacterController();
 const loader = new GLTFLoader();
 loader.load(
   "../model/RobotExpressive.glb",
@@ -61,16 +61,35 @@ loader.load(
         animationsMap.set(a.name, mixer.clipAction(a));
       });
     animationsMap.forEach((value, key) => {
-      if (key == "Running") {
-        console.log(value);
+      if (key == "Wave") {
+        //console.log(value);
         value.play();
       }
+      console.log(key);
     });
   },
   undefined,
   function (e) {
     console.error(e);
   }
+);
+var keysPressed = {};
+document.addEventListener(
+  "keydown",
+  (event) => {
+    keysPressed[event.key.toLowerCase()] = true;
+
+    console.log(keysPressed);
+  },
+  false
+);
+document.addEventListener(
+  "keyup",
+  (event) => {
+    keysPressed[event.key.toLowerCase()] = false;
+    console.log(keysPressed);
+  },
+  false
 );
 
 renderer.setPixelRatio(window.devicePixelRatio);
