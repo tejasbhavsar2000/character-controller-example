@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GUI } from "dat.gui";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-
+import { CharacterController } from "./characterController";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import Perlin from "./perlin";
 import { TextureLoader } from "three";
@@ -22,7 +22,7 @@ var camera = new THREE.PerspectiveCamera(
   100
 );
 camera.position.set(-5, 3, 10);
-camera.lookAt(new THREE.Vector3(0, 2, 0));
+
 var renderer = new THREE.WebGLRenderer({ antialias: true });
 
 const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444);
@@ -35,16 +35,32 @@ scene.add(dirLight);
 
 const mesh = new THREE.Mesh(
   new THREE.PlaneGeometry(2000, 2000),
-  new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false })
+  new THREE.MeshPhongMaterial({
+    color: 0x999999,
+    depthWrite: false,
+    map: new THREE.TextureLoader().load("../textures/sand.jpg"),
+  })
 );
 mesh.rotation.x = -Math.PI / 2;
 mesh.receiveShadow = true;
 
 scene.add(mesh);
 //var characterControls = new CharacterController();
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputEncoding = THREE.sRGBEncoding;
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.minDistance = 5;
+controls.maxDistance = 15;
+controls.enablePan = false;
+controls.maxPolarAngle = Math.PI / 2 - 0.05;
+controls.update();
+document.body.appendChild(renderer.domElement);
 const loader = new GLTFLoader();
+var characterController;
 loader.load(
-  "../model/RobotExpressive.glb",
+  "../model/Xbot.glb",
   function (gltf) {
     const model = gltf.scene;
     model.traverse(function (object) {
@@ -60,13 +76,15 @@ loader.load(
       .forEach((a) => {
         animationsMap.set(a.name, mixer.clipAction(a));
       });
-    animationsMap.forEach((value, key) => {
-      if (key == "Wave") {
-        //console.log(value);
-        value.play();
-      }
-      console.log(key);
-    });
+
+    characterController = new CharacterController(
+      model,
+      mixer,
+      animationsMap,
+      controls,
+      camera,
+      "idle"
+    );
   },
   undefined,
   function (e) {
@@ -77,9 +95,11 @@ var keysPressed = {};
 document.addEventListener(
   "keydown",
   (event) => {
-    keysPressed[event.key.toLowerCase()] = true;
-
-    console.log(keysPressed);
+    if (event.shiftKey && characterController) {
+      characterController.switchRunToggle();
+    } else {
+      keysPressed[event.key.toLowerCase()] = true;
+    }
   },
   false
 );
@@ -87,22 +107,19 @@ document.addEventListener(
   "keyup",
   (event) => {
     keysPressed[event.key.toLowerCase()] = false;
-    console.log(keysPressed);
   },
   false
 );
 
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.outputEncoding = THREE.sRGBEncoding;
-const controls = new OrbitControls(camera, renderer.domElement);
-document.body.appendChild(renderer.domElement);
-
 function animate() {
-  requestAnimationFrame(animate);
-  var delta = clock.getDelta();
-  if (mixer) mixer.update(delta);
+  let mixerUpdateDelta = clock.getDelta();
+  if (characterController) {
+    characterController.update(mixerUpdateDelta, keysPressed);
+  }
+  controls.update();
+
   render();
+  requestAnimationFrame(animate);
 }
 
 function render() {
