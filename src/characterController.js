@@ -20,8 +20,8 @@ export class CharacterController {
 
   // constants
   fadeDuration = 0.2;
-  runVelocity = 5;
-  walkVelocity = 2;
+  runVelocity = 10;
+  walkVelocity = 5;
 
   constructor(
     model,
@@ -30,6 +30,7 @@ export class CharacterController {
     orbitControl,
     camera,
     currentAction
+    //startPosition
   ) {
     this.model = model;
     this.mixer = mixer;
@@ -40,6 +41,7 @@ export class CharacterController {
         value.play();
       }
     });
+
     this.orbitControl = orbitControl;
     this.camera = camera;
     this.updateCameraTarget(0, 0);
@@ -54,11 +56,11 @@ export class CharacterController {
 
     var play = "";
     if (directionPressed && this.toggleRun) {
-      play = "run";
+      play = "Running";
     } else if (directionPressed) {
-      play = "walk";
+      play = "Walking";
     } else {
-      play = "idle";
+      play = "Idle";
     }
 
     if (this.currentAction != play) {
@@ -73,7 +75,7 @@ export class CharacterController {
 
     this.mixer.update(delta);
 
-    if (this.currentAction == "run" || this.currentAction == "walk") {
+    if (this.currentAction == "Running" || this.currentAction == "Walking") {
       // calculate towards camera direction
       var angleYCameraDirection = Math.atan2(
         this.camera.position.x - this.model.position.x,
@@ -87,7 +89,7 @@ export class CharacterController {
         this.rotateAngle,
         angleYCameraDirection + directionOffset
       );
-      console.log(this.rotateQuarternion);
+
       this.model.quaternion.rotateTowards(this.rotateQuarternion, 0.2);
 
       // calculate direction
@@ -98,7 +100,7 @@ export class CharacterController {
 
       // run/walk velocity
       const velocity =
-        this.currentAction == "run" ? this.runVelocity : this.walkVelocity;
+        this.currentAction == "Run" ? this.runVelocity : this.walkVelocity;
 
       // move model & camera
       const moveX = this.walkDirection.x * velocity * delta;

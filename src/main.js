@@ -4,7 +4,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { CharacterController } from "./characterController";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import Perlin from "./perlin";
-import { TextureLoader } from "three";
+import { TextureLoader, Vector3 } from "three";
 
 const width = window.innerWidth;
 const height = window.innerHeight;
@@ -34,7 +34,7 @@ dirLight.position.set(0, 20, 10);
 scene.add(dirLight);
 
 const mesh = new THREE.Mesh(
-  new THREE.PlaneGeometry(2000, 2000),
+  new THREE.PlaneGeometry(100, 100),
   new THREE.MeshPhongMaterial({
     color: 0x999999,
     depthWrite: false,
@@ -57,20 +57,26 @@ controls.enablePan = false;
 controls.maxPolarAngle = Math.PI / 2 - 0.05;
 controls.update();
 document.body.appendChild(renderer.domElement);
+
 const loader = new GLTFLoader();
 var characterController;
 loader.load(
-  "../model/Xbot.glb",
+  "../model/Robot.glb",
   function (gltf) {
     const model = gltf.scene;
-    model.traverse(function (object) {
-      if (object.isMesh) object.castShadow = true;
+
+    model.traverse((object) => {
+      if (object.isMesh) {
+        object.castShadow = true;
+      }
     });
+
     scene.add(model);
 
     const gltfAnimations = gltf.animations;
     mixer = new THREE.AnimationMixer(model);
     const animationsMap = new Map();
+
     gltfAnimations
       .filter((a) => a.name != "TPose")
       .forEach((a) => {
@@ -83,7 +89,7 @@ loader.load(
       animationsMap,
       controls,
       camera,
-      "idle"
+      "Idle"
     );
   },
   undefined,
