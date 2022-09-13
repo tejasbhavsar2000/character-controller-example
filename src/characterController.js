@@ -89,8 +89,8 @@ export class CharacterController {
         this.rotateAngle,
         angleYCameraDirection + directionOffset
       );
-
-      this.model.quaternion.rotateTowards(this.rotateQuarternion, 0.2);
+      this.model.quaternion.slerp(this.rotateQuarternion, 0.05);
+      //this.model.quaternion.rotateTowards(this.rotateQuarternion, 0.2);
 
       // calculate direction
       this.camera.getWorldDirection(this.walkDirection);
