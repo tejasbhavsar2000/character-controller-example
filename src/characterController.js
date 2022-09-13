@@ -20,8 +20,16 @@ export class CharacterController {
 
   // constants
   fadeDuration = 0.2;
-  runVelocity = 10;
-  walkVelocity = 5;
+  maxRunningVelocity = 10;
+  maxWalkingVelocity = 5;
+  accTime = 200;
+  deaccTime = 100;
+
+  accelRatePerSecForWalking;
+  accelRatePerSecForRunning;
+  deaccelRatePerSecForWalking;
+  deaccelRatePerSecForRunning;
+  velocity = 0;
 
   constructor(
     model,
@@ -42,6 +50,12 @@ export class CharacterController {
       }
     });
 
+    this.accelRatePerSecForWalking = this.maxWalkingVelocity / this.accTime;
+    this.accelRatePerSecForRunning = this.maxRunningVelocity / this.accTime;
+    this.deaccelRatePerSecForWalking =
+      -this.maxWalkingVelocity / this.deaccTime;
+    this.deaccelRatePerSecForRunning =
+      -this.maxRunningVelocity / this.deaccTime;
     this.orbitControl = orbitControl;
     this.camera = camera;
     this.updateCameraTarget(0, 0);
@@ -49,6 +63,25 @@ export class CharacterController {
 
   switchRunToggle() {
     this.toggleRun = !this.toggleRun;
+  }
+
+  calculateAcceleration() {
+    if (this.currentAction == "Running") {
+      this.velocity += this.accelRatePerSecForRunning;
+      this.velocity = Math.min(this.maxRunningVelocity, this.velocity);
+    } else if (this.currentAction == "Walking") {
+      this.velocity += this.accelRatePerSecForWalking;
+      this.velocity = Math.min(this.maxWalkingVelocity, this.velocity);
+    }
+  }
+  calculateDeacceleration() {
+    if (this.currentAction == "Idle") {
+      this.velocity += this.deaccelRatePerSecForRunning;
+      this.velocity = Math.max(0, this.velocity);
+    } else if (this.currentAction == "Idle") {
+      this.velocity += this.deaccelRatePerSecForWalking;
+      this.velocity = Math.max(0, this.velocity);
+    }
   }
 
   update(delta, keysPressed) {
@@ -97,14 +130,21 @@ export class CharacterController {
       this.walkDirection.y = 0;
       this.walkDirection.normalize();
       this.walkDirection.applyAxisAngle(this.rotateAngle, directionOffset);
+      // run/walk velocity\
+      console.log(this.currentAction);
+      this.calculateAcceleration();
 
-      // run/walk velocity
-      const velocity =
-        this.currentAction == "Run" ? this.runVelocity : this.walkVelocity;
+      console.log(this.velocity);
 
-      // move model & camera
-      const moveX = this.walkDirection.x * velocity * delta;
-      const moveZ = this.walkDirection.z * velocity * delta;
+      const moveX = this.walkDirection.x * this.velocity * delta;
+      const moveZ = this.walkDirection.z * this.velocity * delta;
+      this.model.position.x += moveX;
+      this.model.position.z += moveZ;
+      this.updateCameraTarget(moveX, moveZ);
+    } else if (this.currentAction == "Idle" && this.velocity > 0) {
+      this.calculateDeacceleration();
+      const moveX = this.walkDirection.x * this.velocity * delta;
+      const moveZ = this.walkDirection.z * this.velocity * delta;
       this.model.position.x += moveX;
       this.model.position.z += moveZ;
       this.updateCameraTarget(moveX, moveZ);

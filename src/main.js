@@ -113,6 +113,7 @@ document.addEventListener(
   "keyup",
   (event) => {
     keysPressed[event.key.toLowerCase()] = false;
+    characterController.calculateDeacceleration();
   },
   false
 );
