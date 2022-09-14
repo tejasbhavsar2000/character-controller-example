@@ -14,14 +14,14 @@ var mixer;
 scene.background = new THREE.Color(0xe0e0e0);
 scene.fog = new THREE.Fog(0xe0e0e0, 20, 100);
 scene.background = new THREE.Color("#808080");
-
+const fov = (180 * (2 * Math.atan(innerHeight / 2 / 800))) / Math.PI;
 var camera = new THREE.PerspectiveCamera(
-  45,
+  fov,
   window.innerWidth / window.innerHeight,
-  0.25,
-  100
+  1,
+  10000
 );
-camera.position.set(-5, 3, 10);
+camera.position.set(0, 0, 800);
 
 var renderer = new THREE.WebGLRenderer({ antialias: true });
 
