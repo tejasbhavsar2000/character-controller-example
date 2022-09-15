@@ -23,7 +23,7 @@ export class CharacterController {
   maxRunningVelocity = 10;
   maxWalkingVelocity = 5;
   accTime = 200;
-  deaccTime = 100;
+  deaccTime = 50;
 
   accelRatePerSecForWalking;
   accelRatePerSecForRunning;

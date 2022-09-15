@@ -3,9 +3,13 @@ import { GUI } from "dat.gui";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { CharacterController } from "./characterController";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import Perlin from "./perlin";
-import { TextureLoader, Vector3 } from "three";
-
+import * as CANNON from "cannon-es";
+import * as OIMO from "oimo";
+import { threeToCannon, ShapeType } from "three-to-cannon";
+import CannonDebugger from "cannon-es-debugger";
+const world = new CANNON.World();
+world.gravity.set(0, -9.82, 0);
+console.log(OIMO.BODY_GHOST);
 const width = window.innerWidth;
 const height = window.innerHeight;
 var scene = new THREE.Scene();
@@ -32,7 +36,12 @@ scene.add(hemiLight);
 const dirLight = new THREE.DirectionalLight(0xffffff);
 dirLight.position.set(0, 20, 10);
 scene.add(dirLight);
-
+const planeBody = new CANNON.Body({
+  type: CANNON.Body.STATIC,
+  shape: new CANNON.Box(new CANNON.Vec3(50, 50, 0)),
+});
+planeBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+world.addBody(planeBody);
 const mesh = new THREE.Mesh(
   new THREE.PlaneGeometry(100, 100),
   new THREE.MeshPhongMaterial({
@@ -57,9 +66,12 @@ controls.enablePan = false;
 controls.maxPolarAngle = Math.PI / 2 - 0.05;
 controls.update();
 document.body.appendChild(renderer.domElement);
-
+const cannonDebugger = new CannonDebugger(scene, world);
 const loader = new GLTFLoader();
+const axisHelper = new THREE.AxesHelper(9);
+scene.add(axisHelper);
 var characterController;
+
 loader.load(
   "../model/Robot.glb",
   function (gltf) {
@@ -71,8 +83,15 @@ loader.load(
       }
     });
 
-    scene.add(model);
+    const hitBody = new CANNON.Body({
+      type: CANNON.Body.DYNAMIC,
+      shape: new CANNON.Box(new CANNON.Vec3(1, 1, 1)),
+      //position: new CANNON.Vec3(new CANNON.Vec3(center)),
+    });
+    world.addBody(hitBody);
 
+    scene.add(model);
+    gltf.scene.updateMatrixWorld(true);
     const gltfAnimations = gltf.animations;
     mixer = new THREE.AnimationMixer(model);
     const animationsMap = new Map();
@@ -119,12 +138,13 @@ document.addEventListener(
 );
 
 function animate() {
-  let mixerUpdateDelta = clock.getDelta();
+  let delta = clock.getDelta();
   if (characterController) {
-    characterController.update(mixerUpdateDelta, keysPressed);
+    characterController.update(delta, keysPressed);
   }
+  world.step(delta);
   controls.update();
-
+  cannonDebugger.update();
   render();
   requestAnimationFrame(animate);
 }
