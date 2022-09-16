@@ -11,6 +11,7 @@ export class CharacterController {
   // state
   toggleRun = true;
   currentAction;
+  hitBody;
 
   // temporary data
   walkDirection = new THREE.Vector3();
@@ -37,7 +38,8 @@ export class CharacterController {
     animationsMap,
     orbitControl,
     camera,
-    currentAction
+    currentAction,
+    hitBody
     //startPosition
   ) {
     this.model = model;
@@ -58,6 +60,7 @@ export class CharacterController {
       -this.maxRunningVelocity / this.deaccTime;
     this.orbitControl = orbitControl;
     this.camera = camera;
+    this.hitBody = hitBody;
     this.updateCameraTarget(0, 0);
   }
 
@@ -138,15 +141,15 @@ export class CharacterController {
 
       const moveX = this.walkDirection.x * this.velocity * delta;
       const moveZ = this.walkDirection.z * this.velocity * delta;
-      this.model.position.x += moveX;
-      this.model.position.z += moveZ;
+      this.hitBody.position.x += moveX;
+      this.hitBody.position.z += moveZ;
       this.updateCameraTarget(moveX, moveZ);
     } else if (this.currentAction == "Idle" && this.velocity > 0) {
       this.calculateDeacceleration();
       const moveX = this.walkDirection.x * this.velocity * delta;
       const moveZ = this.walkDirection.z * this.velocity * delta;
-      this.model.position.x += moveX;
-      this.model.position.z += moveZ;
+      this.hitBody.position.x += moveX;
+      this.hitBody.position.z += moveZ;
       this.updateCameraTarget(moveX, moveZ);
     }
   }

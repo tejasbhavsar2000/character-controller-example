@@ -36,24 +36,28 @@ scene.add(hemiLight);
 const dirLight = new THREE.DirectionalLight(0xffffff);
 dirLight.position.set(0, 20, 10);
 scene.add(dirLight);
-const planeBody = new CANNON.Body({
-  type: CANNON.Body.STATIC,
-  shape: new CANNON.Box(new CANNON.Vec3(50, 50, 0)),
-});
-planeBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-world.addBody(planeBody);
-const mesh = new THREE.Mesh(
-  new THREE.PlaneGeometry(100, 100),
-  new THREE.MeshPhongMaterial({
-    color: 0x999999,
-    depthWrite: false,
-    map: new THREE.TextureLoader().load("../textures/sand.jpg"),
-  })
-);
-mesh.rotation.x = -Math.PI / 2;
-mesh.receiveShadow = true;
 
-scene.add(mesh);
+const groundPhysMat = new CANNON.Material();
+
+const groundBody = new CANNON.Body({
+  //shape: new CANNON.Plane(),
+  //mass: 10
+  shape: new CANNON.Box(new CANNON.Vec3(50, 50, 0.1)),
+  type: CANNON.Body.STATIC,
+  material: groundPhysMat,
+});
+world.addBody(groundBody);
+groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+
+const groundGeo = new THREE.PlaneGeometry(100, 100);
+const groundMat = new THREE.MeshBasicMaterial({
+  color: 0xffffff,
+  map: new THREE.TextureLoader().load("../textures/sand.jpg"),
+  side: THREE.DoubleSide,
+});
+const groundMesh = new THREE.Mesh(groundGeo, groundMat);
+scene.add(groundMesh);
+
 //var characterControls = new CharacterController();
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -71,11 +75,12 @@ const loader = new GLTFLoader();
 const axisHelper = new THREE.AxesHelper(9);
 scene.add(axisHelper);
 var characterController;
-
+let hitBody;
+let model;
 loader.load(
   "../model/Robot.glb",
   function (gltf) {
-    const model = gltf.scene;
+    model = gltf.scene;
 
     model.traverse((object) => {
       if (object.isMesh) {
@@ -83,15 +88,16 @@ loader.load(
       }
     });
 
-    const hitBody = new CANNON.Body({
-      type: CANNON.Body.DYNAMIC,
-      shape: new CANNON.Box(new CANNON.Vec3(1, 1, 1)),
-      //position: new CANNON.Vec3(new CANNON.Vec3(center)),
+    hitBody = new CANNON.Body({
+      mass: 1,
+      shape: new CANNON.Box(new CANNON.Vec3(1.5, 2.2, 1)),
+      position: new CANNON.Vec3(0, 3, 0),
+      //material: hitboxPhyMat,
     });
     world.addBody(hitBody);
-
+    console.log(model);
     scene.add(model);
-    gltf.scene.updateMatrixWorld(true);
+
     const gltfAnimations = gltf.animations;
     mixer = new THREE.AnimationMixer(model);
     const animationsMap = new Map();
@@ -108,7 +114,8 @@ loader.load(
       animationsMap,
       controls,
       camera,
-      "Idle"
+      "Idle",
+      hitBody
     );
   },
   undefined,
@@ -136,13 +143,36 @@ document.addEventListener(
   },
   false
 );
-
+function reset() {
+  hitBody.position.set(1, 20, 1);
+}
 function animate() {
   let delta = clock.getDelta();
   if (characterController) {
     characterController.update(delta, keysPressed);
   }
-  world.step(delta);
+
+  groundMesh.position.copy(groundBody.position);
+  groundMesh.quaternion.copy(groundBody.quaternion);
+  if (model) {
+    if (hitBody.position.y < -20) {
+      console.log(hitBody.position.y);
+      reset();
+    } else {
+      model.position.set(
+        hitBody.position.x,
+        hitBody.position.y - 2.2,
+        hitBody.position.z
+      );
+      hitBody.quaternion.set(
+        model.quaternion.x,
+        model.quaternion.y,
+        model.quaternion.z,
+        model.quaternion.w
+      );
+    }
+  }
+  if (delta > 0) world.step(delta);
   controls.update();
   cannonDebugger.update();
   render();
