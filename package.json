@@ -12,7 +12,6 @@
     "vite": "^2.9.0"
   },
   "dependencies": {
-    "cannon-es-debugger": "^1.0.0",
     "dat.gui": "^0.7.9",
     "three": "^0.139.2",
     "three-orbitcontrols-ts": "^0.1.2"

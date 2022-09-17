@@ -4,14 +4,10 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { CharacterController } from "./characterController";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import * as CANNON from "cannon-es";
-import * as OIMO from "oimo";
-import { threeToCannon, ShapeType } from "three-to-cannon";
 
 const world = new CANNON.World();
 world.gravity.set(0, -9.82, 0);
-console.log(OIMO.BODY_GHOST);
-const width = window.innerWidth;
-const height = window.innerHeight;
+
 var scene = new THREE.Scene();
 var clock = new THREE.Clock();
 var mixer;
@@ -52,7 +48,9 @@ groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 const groundGeo = new THREE.PlaneGeometry(100, 100);
 const groundMat = new THREE.MeshBasicMaterial({
   color: 0xffffff,
-  map: new THREE.TextureLoader().load("../textures/sand.jpg"),
+  map: new THREE.TextureLoader().load(
+    "../character-controller-example/textures/sand.jpg"
+  ),
   side: THREE.DoubleSide,
 });
 
@@ -90,7 +88,7 @@ scene.add(axisHelper);
 const gui = new GUI();
 
 const physics = {
-  togglePhysics: false,
+  togglePhysics: true,
 };
 
 const PhysicsFolder = gui.addFolder("Physics");
@@ -107,7 +105,7 @@ let hitBody;
 let model;
 const hitboxPhyMat = new CANNON.Material();
 loader.load(
-  "../model/Robot.glb",
+  "../character-controller-example/model/Robot.glb",
   function (gltf) {
     model = gltf.scene;
 
@@ -123,6 +121,7 @@ loader.load(
       position: new CANNON.Vec3(0, 3, 0),
       material: hitboxPhyMat,
     });
+    world.addBody(hitBody);
     hitBody.linearDamping = 0.01;
 
     console.log(model);

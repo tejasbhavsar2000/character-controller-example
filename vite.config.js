@@ -1,8 +1,7 @@
 // vite.config.js
 export default {
   // config options
-
-  root: "./",
+  base: "/character-controller-example/",
   build: {
     outDir: "dist",
   },
