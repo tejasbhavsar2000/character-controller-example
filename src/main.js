@@ -1,9 +1,11 @@
 import * as THREE from "three";
 import { GUI } from "dat.gui";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { CharacterController } from "./characterController";
+import { CharacterController } from "./lib/characterController";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import * as CANNON from "cannon-es";
+import CannonDebugger from 'cannon-es-debugger'
+
 
 const world = new CANNON.World();
 world.gravity.set(0, -9.82, 0);
@@ -24,7 +26,7 @@ var camera = new THREE.PerspectiveCamera(
 );
 camera.position.set(0, 0, 800);
 
-var renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer();
 
 const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444);
 hemiLight.position.set(0, 20, 0);
@@ -37,7 +39,7 @@ scene.add(dirLight);
 const groundPhysMat = new CANNON.Material();
 const groundBody = new CANNON.Body({
   //shape: new CANNON.Plane(),
-  //mass: 10
+  mass: 0,
   shape: new CANNON.Box(new CANNON.Vec3(50, 50, 0.1)),
   type: CANNON.Body.STATIC,
   material: groundPhysMat,
@@ -61,6 +63,7 @@ const boxMesh = new THREE.Mesh(box, boxMat);
 const boxBody = new CANNON.Body({
   //shape: new CANNON.Plane(),
   mass: 1,
+
   shape: new CANNON.Box(new CANNON.Vec3(2.5, 2.5, 2.5)),
 });
 boxBody.position.set(10, 5, 10);
@@ -75,7 +78,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputEncoding = THREE.sRGBEncoding;
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.minDistance = 5;
+controls.minDistance = 15;
 controls.maxDistance = 15;
 controls.enablePan = false;
 controls.maxPolarAngle = Math.PI / 2 - 0.05;
@@ -116,13 +119,15 @@ loader.load(
     });
 
     hitBody = new CANNON.Body({
-      mass: 1,
+      mass:30,
       shape: new CANNON.Box(new CANNON.Vec3(1.5, 2.2, 1)),
+      
       position: new CANNON.Vec3(0, 3, 0),
       material: hitboxPhyMat,
+      
     });
     world.addBody(hitBody);
-    hitBody.linearDamping = 0.01;
+     hitBody.linearDamping = 0.01;
 
     console.log(model);
     scene.add(model);
@@ -172,6 +177,29 @@ document.addEventListener(
   },
   false
 );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// World Reset
+
 function reset() {
   // Position
   boxBody.position.setZero();
@@ -233,13 +261,16 @@ function reset() {
   );
 }
 
-var mat1_ground = new CANNON.ContactMaterial(groundPhysMat, hitboxPhyMat, {
-  friction: 10,
-  restitution: 0,
-});
-world.addContactMaterial(mat1_ground);
+
+
+
+
+const cannonDebugger = new CannonDebugger(scene, world, {
+  // options...
+})
+let delta = 0;
 function animate() {
-  let delta = clock.getDelta();
+  delta = Math.min(clock.getDelta(), 0.1)
   if (characterController) {
     characterController.update(delta, keysPressed);
   }
@@ -265,11 +296,14 @@ function animate() {
       );
     }
   }
-  if (delta > 0) world.step(delta);
+ world.step(delta);
+ 
+  cannonDebugger.update()
   controls.update();
 
   render();
-  requestAnimationFrame(animate);
+  
+   requestAnimationFrame(animate);
 }
 
 function render() {

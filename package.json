@@ -8,10 +8,12 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "cannon-es": "^0.20.0",
     "vite": "^2.9.0"
   },
   "dependencies": {
+    "@dimforge/rapier3d": "^0.14.0",
+    "cannon-es": "^0.20.0",
+    "cannon-es-debugger": "^1.0.0",
     "dat.gui": "^0.7.9",
     "three": "^0.139.2",
     "three-orbitcontrols-ts": "^0.1.2"
