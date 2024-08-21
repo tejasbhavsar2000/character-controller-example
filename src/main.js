@@ -4,8 +4,8 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { CharacterController } from "./lib/characterController";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import * as CANNON from "cannon-es";
-import CannonDebugger from 'cannon-es-debugger'
-
+import CannonDebugger from 'cannon-es-debugger';
+import { createBox } from "./lib/builder";
 
 const world = new CANNON.World();
 world.gravity.set(0, -9.82, 0);
@@ -24,9 +24,9 @@ var camera = new THREE.PerspectiveCamera(
   1,
   10000
 );
-camera.position.set(0, 0, 800);
+camera.position.set(0, 300, 800);
 
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({antialias: true});
 
 const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444);
 hemiLight.position.set(0, 20, 0);
@@ -47,34 +47,44 @@ const groundBody = new CANNON.Body({
 world.addBody(groundBody);
 groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 
-const groundGeo = new THREE.PlaneGeometry(100, 100);
-const groundMat = new THREE.MeshBasicMaterial({
-  color: 0xffffff,
-  map: new THREE.TextureLoader().load(
-    "../character-controller-example/textures/sand.jpg"
-  ),
-  side: THREE.DoubleSide,
+const groundGeo = new THREE.BoxGeometry(100, 100);
+var groundTexture = new THREE.TextureLoader().load("../character-controller-example/textures/stone_floor2.jpg" );
+groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
+groundTexture.repeat.set(10,10)
+
+groundTexture.anisotropy = 16;
+groundTexture.encoding = THREE.sRGBEncoding;
+const groundMat = new THREE.MeshPhongMaterial({
+  depthWrite: false ,
+  color: 0x8c8c80,
+  map: groundTexture,
+
 });
-
-const box = new THREE.BoxGeometry(5, 5, 5);
-const boxMat = new THREE.LineBasicMaterial({ color: 0xffffff });
-const boxMesh = new THREE.Mesh(box, boxMat);
-
-const boxBody = new CANNON.Body({
-  //shape: new CANNON.Plane(),
-  mass: 1,
-
-  shape: new CANNON.Box(new CANNON.Vec3(2.5, 2.5, 2.5)),
-});
-boxBody.position.set(10, 5, 10);
-world.addBody(boxBody);
-scene.add(boxMesh);
 const groundMesh = new THREE.Mesh(groundGeo, groundMat);
+groundMesh.receiveShadow=true;
 scene.add(groundMesh);
 
+
+
+
+const box1 = createBox(5,{x: 10, y : 5,z: 10});
+const box2 = createBox(5,{x: 10, y : 5,z: -10})
+const box3 = createBox(5,{x: -10, y : 5,z: 10})
+const box4 = createBox(5,{x: -10, y : 5,z: -10})
+const boxArray = [box1,box2,box3,box4]
+
+boxArray.forEach((box)=>{
+  world.addBody(box.body)
+  scene.add(box.mesh);
+})
+
+
+
 //var characterControls = new CharacterController();
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio( window.devicePixelRatio );
+renderer.setSize( window.innerWidth, window.innerHeight );
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputEncoding = THREE.sRGBEncoding;
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -86,22 +96,17 @@ controls.update();
 document.body.appendChild(renderer.domElement);
 
 const loader = new GLTFLoader();
-const axisHelper = new THREE.AxesHelper(9);
-scene.add(axisHelper);
+
 const gui = new GUI();
 
-const physics = {
-  togglePhysics: true,
+const gameplay = {
+  Reset: function(){ reset() },
 };
 
-const PhysicsFolder = gui.addFolder("Physics");
-PhysicsFolder.add(physics, "togglePhysics")
-  .listen()
-  .onChange((value) => {
-    value ? world.addBody(hitBody) : world.removeBody(hitBody);
-  });
+const GamplayFolder = gui.addFolder("gameplay");
+GamplayFolder.add(gameplay, "Reset");
 
-PhysicsFolder.open();
+GamplayFolder.open();
 
 var characterController;
 let hitBody;
@@ -129,7 +134,7 @@ loader.load(
     world.addBody(hitBody);
      hitBody.linearDamping = 0.01;
 
-    console.log(model);
+   
     scene.add(model);
 
     const gltfAnimations = gltf.animations;
@@ -161,10 +166,21 @@ var keysPressed = {};
 document.addEventListener(
   "keydown",
   (event) => {
+    const key = event.key.toLowerCase();
+    if(key == 'w' || key == 'a' || key == 's' || key == 'd' ){
+      const svgborder = document.getElementById(`${key}-b`);
+      const svgtext = document.getElementById(`${key}-t`);
+      svgborder.classList.add('press-border');
+      svgtext.classList.add('press-text');
+    } 
+
     if (event.shiftKey && characterController) {
       characterController.switchRunToggle();
-    } else {
-      keysPressed[event.key.toLowerCase()] = true;
+    }
+    
+     else {
+      keysPressed[key] = true;
+      
     }
   },
   false
@@ -172,14 +188,25 @@ document.addEventListener(
 document.addEventListener(
   "keyup",
   (event) => {
-    keysPressed[event.key.toLowerCase()] = false;
+    const key = event.key.toLowerCase()
+    if(key == 'w' || key == 'a' || key == 's' || key == 'd' ){
+      const svgborder = document.getElementById(`${key}-b`);
+      const svgtext = document.getElementById(`${key}-t`);
+      svgborder.classList.remove('press-border');
+      svgtext.classList.remove('press-text');
+    } 
+    keysPressed[key] = false;
     characterController.calculateDeacceleration();
   },
   false
 );
 
+const mat1_ground = new CANNON.ContactMaterial(groundPhysMat, hitboxPhyMat, {
 
-
+  friction: 1000,
+  restitution: 0,
+});
+world.addContactMaterial(mat1_ground);
 
 
 
@@ -201,33 +228,36 @@ document.addEventListener(
 // World Reset
 
 function reset() {
+  boxArray.forEach((box) =>{
+    box.body.position.setZero();
+    box.body.previousPosition.setZero();
+    box.body.interpolatedPosition.setZero();
+    box.body.initPosition.setZero();
+
+    // orientation
+    box.body.quaternion.set(0, 0, 0, 1);
+    box.body.initQuaternion.set(0, 0, 0, 1);
+    box.body.previousQuaternion.set(0, 0, 0, 1);
+    box.body.interpolatedQuaternion.set(0, 0, 0, 1);
+
+    // Velocity
+    box.body.velocity.setZero();
+    box.body.initVelocity.setZero();
+    box.body.angularVelocity.setZero();
+    box.body.initAngularVelocity.setZero();
+
+    // Force
+    box.body.force.setZero();
+    box.body.torque.setZero();
+
+    // Sleep state reset
+    box.body.sleepState = 0;
+    box.body.timeLastSleepy = 0;
+    box.body._wakeUpAfterNarrowphase = false;
+    box.body.position.set(box.pos['x'], box.pos['y'], box.pos['z']);
+  })
   // Position
-  boxBody.position.setZero();
-  boxBody.previousPosition.setZero();
-  boxBody.interpolatedPosition.setZero();
-  boxBody.initPosition.setZero();
-
-  // orientation
-  boxBody.quaternion.set(0, 0, 0, 1);
-  boxBody.initQuaternion.set(0, 0, 0, 1);
-  boxBody.previousQuaternion.set(0, 0, 0, 1);
-  boxBody.interpolatedQuaternion.set(0, 0, 0, 1);
-
-  // Velocity
-  boxBody.velocity.setZero();
-  boxBody.initVelocity.setZero();
-  boxBody.angularVelocity.setZero();
-  boxBody.initAngularVelocity.setZero();
-
-  // Force
-  boxBody.force.setZero();
-  boxBody.torque.setZero();
-
-  // Sleep state reset
-  boxBody.sleepState = 0;
-  boxBody.timeLastSleepy = 0;
-  boxBody._wakeUpAfterNarrowphase = false;
-  boxBody.position.set(10, 5, 10);
+  
   // Position
   hitBody.position.setZero();
   hitBody.previousPosition.setZero();
@@ -254,7 +284,7 @@ function reset() {
   hitBody.sleepState = 0;
   hitBody.timeLastSleepy = 0;
   hitBody._wakeUpAfterNarrowphase = false;
-  hitBody.position.set(1, 20, 1);
+  hitBody.position.set(1, 5, 1);
   characterController.updateCameraTarget(
     hitBody.position.x,
     hitBody.position.y
@@ -274,13 +304,16 @@ function animate() {
   if (characterController) {
     characterController.update(delta, keysPressed);
   }
-  boxMesh.position.copy(boxBody.position);
-  boxMesh.quaternion.copy(boxBody.quaternion);
+  boxArray.forEach((value)=>{
+    value.mesh.position.copy(value.body.position);
+    value.mesh.quaternion.copy(value.body.quaternion);
+  })
+  
   groundMesh.position.copy(groundBody.position);
   groundMesh.quaternion.copy(groundBody.quaternion);
   if (model) {
     if (hitBody.position.y < -20 || hitBody.position.y > 20) {
-      console.log(hitBody.position.y);
+      
       reset();
     } else {
       model.position.set(
@@ -298,7 +331,7 @@ function animate() {
   }
  world.step(delta);
  
-  cannonDebugger.update()
+  //cannonDebugger.update()
   controls.update();
 
   render();

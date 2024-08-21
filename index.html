@@ -2,23 +2,264 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jersey+10&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite App</title>
     <style>
       html, body { 
+        font-family: "Jersey 10", sans-serif;
+        font-weight: 400;
+        font-style: normal;
         margin: 0;
         height: 100%;
+        
       }
       #app{
         width: 100%;
         height: 100%;
         
       }
+      .inprogress{
+        left:0;
+        right:0;
+        top: 2%;
+        margin-left: auto;
+        margin-right: auto;
+        padding : 1rem;
+        position: absolute;
+        width: fit-content;
+        border-radius: 5px;
+        outline: 2px solid rgb(255, 241, 118);
+        background: white;
+        text-align: center;
+      }
+      .inprogress h2{
+        margin:0;
+      }
+      .inprogress span{
+        font-size: 1.2rem;
+      }
+
+      .bottomline{
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        color: white;
+        left:0;
+        right:0;
+        bottom: 2%;
+        margin-left: auto;
+        margin-right: auto;
+        padding : 1rem;
+        position: absolute;
+        width: fit-content;
+        font-size: 1.2em;
+        text-align: center;
+        font-weight:500;
+      }
+      .bottomline a{ 
+        text-decoration: none;
+        color: rgb(255, 255, 176);
+      }
+      .bottomline a:hover{ 
+        text-decoration: underline; 
+        color: rgb(255, 255, 0);
+      }
+      .key-container{
+       
+        left:5%;
+        bottom : 10%;
+        
+        
+        position: absolute;
+        display: grid; 
+        grid-template-columns: 1fr 1fr 1fr; 
+        grid-template-rows: 1fr 1fr 1fr; 
+        justify-items: center;
+        align-items: center;
+      }
+
+      .key-w{
+        grid-column-start: 2;
+        
+        grid-row-start:2;
+        
+      }
+      .key-a{
+        grid-column-start: 1;
+        
+        grid-row-start:3;
+        
+      }
+      .key-s{
+        grid-column-start: 2;
+        
+        grid-row-start:3;
+        
+      }
+      .key-d{
+        grid-column-start: 3;
+        
+        grid-row-start:3;
+        
+      }
+      .key-heading{
+        color: #fcff44;
+        letter-spacing: 2px;
+        font-weight: bold;
+        display: flex;
+        font-size: 2rem;
+        grid-column-start: 1;
+        grid-column-end: 4;
+        align-self: end;
+      }
+
+
+.key-icon {
+  width: 80px;
+  height: 80px;
+
+}
+.key-icon__text {
+  font-family: Arial;
+  font-weight: bold;
+
+}
+
+
+.key-icon__border {
+  fill: #FFFFFF;
+  stroke: #000000;
+  stroke-width: 2;
+}
+
+.press-border { 
+  fill: #000000;
+  stroke: #FFFFFF;
+  transform: translate(0,10px);
+}
+.press-text{
+  fill: #FFFFFF;
+  transform: translate(0, 10px);
+}
+
+
+
+
+
+      
     </style>
   </head>
   <body>
-    
+    <div  class="inprogress">
+      <h2>Notice !</h2>
+      <span>This is a Demo for Third Person Character Controller.</span>
+
+    </div>
+
+    <div class="bottomline">
+    <a href="https://github.com/tejasbhavsar2000/character-controller-example">
+      Character Controller
+    </a> | Checkout More
+    <a href="https://tejas-dev.vercel.app/">
+        Here!
+      </a>
+    </div>
+
+
+
+    <div class="key-container">
+      <span class="key-heading">Key-Binds</span>
+      <svg  class="key-icon key-w" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 100 100">
+        <g id="w-b" class="key-icon__border">
+          <path d="M 10 90
+                   L 10 20
+                   L 20 10
+                   L 80 10
+                   L 90 20
+                   L 90 90
+                   Z" />
+          <path d="M 10 90
+                      L 20 70
+                      L 20 10" />
+          <path d="M 20 70
+                      L 80 70" />
+          <path d="M 90 90
+                      L 80 70
+                      L 80 10" />
+        </g>
+        <text id="w-t" class="key-icon__text" x="50" y="45" text-anchor="middle">W</text>
+      </svg>
+
+      <svg class="key-icon key-a" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 100 100">
+        <g id="a-b" class="key-icon__border">
+          <path d="M 10 90
+                         L 10 20
+                         L 20 10
+                         L 80 10
+                         L 90 20
+                         L 90 90
+                         Z" />
+          <path d="M 10 90
+                            L 20 70
+                            L 20 10" />
+          <path d="M 20 70
+                            L 80 70" />
+          <path d="M 90 90
+                            L 80 70
+                            L 80 10" />
+        </g>
+        <text id="a-t" class="key-icon__text" x="50" y="45" text-anchor="middle">A</text>
+      </svg>
+
+
+
+      <svg  class="key-icon key-s" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 100 100">
+        <g id="s-b" class="key-icon__border">
+          <path d="M 10 90
+                         L 10 20
+                         L 20 10
+                         L 80 10
+                         L 90 20
+                         L 90 90
+                         Z" />
+          <path d="M 10 90
+                            L 20 70
+                            L 20 10" />
+          <path d="M 20 70
+                            L 80 70" />
+          <path d="M 90 90
+                            L 80 70
+                            L 80 10" />
+        </g>
+        <text  id="s-t" class="key-icon__text" x="50" y="45" text-anchor="middle">S</text>
+      </svg>
+
+
+
+
+      <svg class="key-icon key-d" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 100 100">
+        <g  id="d-b" class="key-icon__border">
+          <path d="M 10 90
+                         L 10 20
+                         L 20 10
+                         L 80 10
+                         L 90 20
+                         L 90 90
+                         Z" />
+          <path d="M 10 90
+                            L 20 70
+                            L 20 10" />
+          <path d="M 20 70
+                            L 80 70" />
+          <path d="M 90 90
+                            L 80 70
+                            L 80 10" />
+        </g>
+        <text  id="d-t" class="key-icon__text" x="50" y="45" text-anchor="middle">D</text>
+      </svg>
+    </div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

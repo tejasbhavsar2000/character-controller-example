@@ -21,9 +21,9 @@ export class CharacterController {
 
   // constants
   fadeDuration = 0.2;
-  maxRunningVelocity = 10;
-  maxWalkingVelocity = 5;
-  accTime = 200;
+  maxRunningVelocity = 15;
+  maxWalkingVelocity = 8;
+  accTime = 150;
   deaccTime = 50;
 
   accelRatePerSecForWalking;
@@ -78,7 +78,7 @@ export class CharacterController {
     }
   }
   calculateDeacceleration() {
-    if (this.currentAction == "Idle") {
+    if (this.currentAction == "Idle" && this.toggleRun == true) {
       this.velocity += this.deaccelRatePerSecForRunning;
       this.velocity = Math.max(0, this.velocity);
     } else if (this.currentAction == "Idle") {
@@ -87,18 +87,24 @@ export class CharacterController {
     }
   }
 
+  
   update(delta, keysPressed) {
     const directionPressed = DIRECTIONS.some((key) => keysPressed[key] == true);
-
+    //const jump = keysPressed[" "];
     var play = "";
     if (directionPressed && this.toggleRun) {
       play = "Running";
     } else if (directionPressed) {
       play = "Walking";
-    } else {
+    }
+    // else if(jump){
+    //   play = "Jump"
+    // } 
+    else {
       play = "Idle";
     }
-
+    
+ 
     if (this.currentAction != play) {
       const toPlay = this.animationsMap.get(play);
       const current = this.animationsMap.get(this.currentAction);
@@ -144,7 +150,14 @@ export class CharacterController {
       this.hitBody.position.x += moveX;
       this.hitBody.position.z += moveZ;
       this.updateCameraTarget(moveX, moveZ);
-    } else if (this.currentAction == "Idle" && this.velocity > 0) {
+    }
+    // else if(this.currentAction == "Jump"){
+      
+    //   this.hitBody.position.x = this.walkDirection.x * this.velocity * delta;
+    //   this.hitBody.position.z = this.walkDirection.z * this.velocity * delta;
+    //   this.hitBody.position.y += 2 * delta
+    // }
+    else if (this.currentAction == "Idle" && this.velocity > 0) {
       this.calculateDeacceleration();
       const moveX = this.walkDirection.x * this.velocity * delta;
       const moveZ = this.walkDirection.z * this.velocity * delta;
